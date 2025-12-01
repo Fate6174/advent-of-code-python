@@ -13,7 +13,7 @@ def get_url(year, day):
 def get_name_url(year, day):
     return f'https://adventofcode.com/{year}/day/{day}'
 
-YEAR = 2025
+YEAR = 2024
 SESSION_ID_FILE = "session.cookie"
 SESSION = get_session_id(SESSION_ID_FILE)
 HEADERS = {
