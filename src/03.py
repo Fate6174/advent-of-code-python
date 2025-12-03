@@ -20,7 +20,7 @@ def compute_batteries(bank : str, num_batteries : int):
             if jolt > max_jolt:
                 current_idx = idx
                 max_jolt = jolt
-        out += int(max_jolt) * 10 ** (num_batteries-1-i)
+        out = 10 * out + int(max_jolt)
         current_idx += 1
     return out
 

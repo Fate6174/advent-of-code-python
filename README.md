@@ -3,5 +3,7 @@
 Problems list:
 
 - [Day 1: Secret Entrance](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/01.py)
+- [Day 2: Gift Shop](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/02.py)
+- [Day 3: Lobby](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/03.py)
 
 Created via: [advent-of-code-setup](https://github.com/tomfran/advent-of-code-setup)
