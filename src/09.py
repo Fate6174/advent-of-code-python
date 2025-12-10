@@ -1,6 +1,5 @@
 from utils.api import get_input
 from time import time
-import numpy as np
 
 input_str = get_input(9)
 # input_str = """7,1
@@ -48,54 +47,36 @@ def is_inside(polygon : list[tuple[int,...]], point : tuple[int, int]) -> bool:
     return out
 
 out = 0
-num_rectangles = len(coords) * (len(coords) + 1) // 2
-rect = 1
-inside_dict = {}
-for (a,b), (c,d) in zip(coords, coords[1:] + coords[:1]):
-    if a == c:
-        for (x,y) in [(a, col) for col in range(min(b,d),max(b,d)+1)]:
-            inside_dict[(x,y)] = True
-    elif b == d:
-        for (x,y) in [(row, b) for row in range(min(a,c),max(a,c)+1)]:
-            inside_dict[(x,y)] = True
-    else:
-        raise ValueError()
 for idx, (a,b) in enumerate(coords):
     for (c,d) in coords[idx+1:]:
-        print(f'{rect}/{num_rectangles}')
-        rect += 1
         # rectangle A = [a,b] -> [c,b] -> [c,d] -> [a,d]
         area = (abs(a-c) + 1) * (abs(b-d) + 1)
+        # only do tests if the area is larger than the current maximum
         if area <= out:
             continue
-        # test every point on the boundary of the rectangle A
-        # if it lies withing the polygon P
-        if a == c:
-            boundary = [(a, col) for col in range(min(b,d),max(b,d)+1)]
-        elif b == d:
-            boundary = [(row, b) for row in range(min(a,c),max(a,c)+1)]
-        else:
-            boundary = ([(row, b) for row in range(min(a,c),max(a,c)+1)] +
-                [(row, d) for row in range(min(a,c),max(a,c)+1)] +
-                [(a, col) for col in range(min(b,d),max(b,d)+1)] +
-                [(c, col) for col in range(min(b,d),max(b,d)+1)])
+        # test if the other corners are inside
+        if not is_inside(coords, (c,b)) or not is_inside(coords, (a,d)):
+            continue
+        # test if the rectangle sides cross any polygon edge
         inside = True
-        for point in boundary:
-            if point in inside_dict.keys():
-                if inside_dict[point]:
-                    continue
-                else:
-                    inside = False
-                    break
-            else:
-                if is_inside(coords, point):
-                    inside_dict[point] = True
-                else:
-                    inside_dict[point] = False
-                    inside = False
-                    break
+        for (u,v), (w, x) in zip(coords, coords[1:] + [coords[0]]):
+            if u == w:
+                if min(a,c) < u and u < max(a,c):
+                    if min(b,d) >= min(v,x) and min(b,d) < max(v,x):
+                        inside = False
+                        break
+                    if max(b,d) > min(v,x) and max(b,d) <= max(v,x):
+                        inside = False
+                        break
+            elif v == x:
+                if v > min(b,d) and v < max(b,d):
+                    if min(a,c) >= min(u,w) and min(a,c) < max(u,w):
+                        inside = False
+                        break
+                    if max(a,c) > min(u,w) and max(a,c) <= max(u,w):
+                        inside = False
+                        break
         if inside:
-            print(f'Rectangle with diagonal tiles {(a,b)} and {(c,d)} is inside. Area = {area}.')
             out = area
 
 # out = 0
