@@ -12,5 +12,6 @@ Problems list:
 - [Day 8: Playground](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/08.py)
 - [Day 9: Movie Theater](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/09.py)
 - [Day 10: Factory](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/10.py)
+- [Day 11: Reactor](https://github.com/Fate6174/advent-of-code-2024/blob/main/src/11.py)
 
 Created via: [advent-of-code-setup](https://github.com/tomfran/advent-of-code-setup)
