@@ -42,7 +42,6 @@ for line in input_str.splitlines():
     c, d = b.split('{')
     buttons = [[int(num) for num in button[1:-1].split(',')] for button in c.strip().split(' ')]
     joltage = [int(jolt) for jolt in d[:-1].split(',')]
-    num_presses = len(buttons)
     # set up mixed integer linear programming
     c = np.ones(len(buttons), dtype=int)
     A = np.zeros((len(joltage), len(buttons)), dtype=int)
