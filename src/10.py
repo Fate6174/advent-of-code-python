@@ -48,8 +48,24 @@ for line in input_str.splitlines():
     for i, button in enumerate(buttons):
         for j in button:
             A[j, i] = 1
+    
     constraints = [sciopt.LinearConstraint(A[idx:idx+1], lb=jolt, ub=jolt) for idx, jolt in enumerate(joltage)]
     milp_result = sciopt.milp(c, integrality=np.ones(len(buttons), dtype=int), constraints=constraints)
     out += int(sum(milp_result.x))
+    # indices = []
+    # for j in range(len(buttons)):
+    #     found = False
+    #     for i in range(len(joltage)):
+    #         if i in indices:
+    #             continue
+    #         if A[i,j] == 1:
+    #             found = True
+    #             indices.append(i)
+    #             break
+    #     if found == True:
+    #         for i in range(indices[-1], len(joltage)):
+    #             if A[i,j] != 
+    #     for i in range(indices[-1], j):
+
 toc = time()
 print(f'{toc-tic:.6f} secs: {out}')
