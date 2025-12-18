@@ -39,7 +39,7 @@ print(f'{toc-tic:.6f} secs: {out}')
 # part 2
 tic = time()
 out = 0
-for idx, line in enumerate(input_str.splitlines()):
+for line in input_str.splitlines():
     a, b = line.split(']')
     c, d = b.split('{')
     buttons = [[int(num) for num in button[1:-1].split(',')] for button in c.strip().split(' ')]
@@ -57,6 +57,7 @@ for idx, line in enumerate(input_str.splitlines()):
     # constraints = [sciopt.LinearConstraint(A[idx:idx+1,:-1], lb=jolt, ub=jolt) for idx, jolt in enumerate(joltage)]
     # milp_result = sciopt.milp(c, integrality=np.ones(len(buttons), dtype=int), constraints=constraints)
     # out += int(sum(milp_result.x))
+    # print(milp_result.x)
     ########################################################################
     
     ########################################################################
@@ -99,59 +100,82 @@ for idx, line in enumerate(input_str.splitlines()):
     # columns of the free variables are needed.
     A_diag = np.array([A[i,j] for i,j in A_diag])
     free_variables = np.array(free_variables, dtype=int)
-    print((idx, free_variables))
     A_free = A[:len(A_diag), free_variables]
     rhs = A[:len(A_diag),-1]
     max_values = max_values[free_variables]
     # The increments are the steps that any free
-    # variable needs to change to get from one possible
+    # variable needs to change to get from one consistent
     # solution to the next one, if all other free
     # variables stay constant.
     increments = np.lcm.reduce(np.abs(A_diag)[:,None] // np.gcd(A_free, A_diag[:,None]))
-
-    # Identify the free variable with the maximum value
-    # of (increment, max_value).
-    max_step_idx = 0
-    for idx in range(len(free_variables)):
-        if (increments[idx], max_values[idx]) > (increments[max_step_idx], max_values[max_step_idx]):
-            max_step_idx = idx
-    # Put this variable to the front.
-    if max_step_idx > 0:
-        A_free[:, [0, max_step_idx]] = A_free[:, [max_step_idx, 0]]
-        max_values[[0, max_step_idx]] = max_values[[max_step_idx, 0]]
-        increments[[0, max_step_idx]] = increments[[max_step_idx, 0]]
 
     # Iterate through values of the free variables.
     sol_min = 1000000000000000000000000000
     free_variables = np.zeros(len(free_variables), dtype=int)
     consistent = False
+    first_two_sols = []
+    solution = None
+    consistency_counter = 0
     while True:
         # solve the system for the current state of the free variables
         val = rhs - A_free @ free_variables
         if consistent or np.all(val % A_diag == 0):
             consistent = True
             sol = val // A_diag
+            first_two_sols.append(sol)
             if np.all(sol >= 0):
                 sol_min = min(sol_min, np.sum(sol) + np.sum(free_variables))
+        else:
+            consistency_counter += 1
+        # short-circuit after obtaining two solutions
+        # by extrapolation (all values are linear progressions)
+        if len(first_two_sols) == 2:
+            s1, s2 = first_two_sols
+            dif = s2 - s1
+            lb = 0
+            ub = (max_values[0] - free_variables[0]) // increments[0] + 1
+            # adapt the lower and upper bound such that
+            # they contain exactly the feasible solutions (with x[:] > 0)
+            for x, xdif in zip(s1, dif):
+                if x < 0:
+                    if xdif > 0:
+                        lb = max(lb, (-x-1) // xdif + 1)
+                    else:
+                        lb = ub + 1
+                        break
+                if x >= 0:
+                    if xdif < 0:
+                        ub = min(ub, x // (-xdif))
+            # if a feasible solution exists choose the minimal
+            # one (located at either the lower or upper bound)
+            if lb <= ub:
+                val1 = np.sum(s1) - increments[0]
+                val2 = np.sum(s2)
+                if val2 > val1:
+                    steps = lb
+                else:
+                    steps = ub
+                val = val1 + np.sum(free_variables) + steps * (val2-val1)
+                sol_min = min(sol_min, val)
+            free_variables[0] = max_values[0]
+            first_two_sols = []
+
         # advance the state of the free variables
-        for i in range(len(free_variables)):
+        for i in range(free_variables.size):
             if consistent:
-                if free_variables[i] + increments[i] <= max_values[i]:
-                    free_variables[i] += increments[i]
-                    break
-                else:
-                    free_variables[i] = 0
-                    consistent = False
+                inc = increments[i]
             else:
-                if free_variables[i] < max_values[i]:
-                    free_variables[i] += 1
-                    break
-                else:
-                    free_variables[i] = 0
+                inc = 1
+            if free_variables[i] + inc <= max_values[i] and consistency_counter < increments[i]:
+                free_variables[i] += inc
+                break
+            else:
+                free_variables[i] = 0
+                consistent = False
+                consistency_counter = 0
         if np.all(free_variables == 0):
             break
     out += sol_min
-    ########################################################################
 
 toc = time()
 print(f'{toc-tic:.6f} secs: {out}')
